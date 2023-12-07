@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'user_prefrence_model.dart';
 export 'user_prefrence_model.dart';
+import '../question.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -22,7 +23,7 @@ class UserPrefrenceWidget extends StatefulWidget {
 
 class _UserPrefrenceWidgetState extends State<UserPrefrenceWidget> {
   late UserPrefrenceModel _model;
-
+  bool _isSubmitting = false;
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<String> _levels = [
@@ -241,70 +242,90 @@ class _UserPrefrenceWidgetState extends State<UserPrefrenceWidget> {
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 16.0),
-                child: FFButtonWidget(
-                  onPressed: () async {
-                    final topic = _model.textController1.text;
-                    final languages = _model.textController2.text
-                        .split(',') // Split the string into a list
-                        .map((language) => language.trim()) // Trim whitespace
-                        .where((language) =>
-                            language.isNotEmpty) // Remove any empty strings
-                        .toList(); // Convert to a List
-                    final level = _selectedLevel;
+                child: _isSubmitting
+                    ? Center(
+                        child:
+                            CircularProgressIndicator()) // Show loading indicator
+                    : FFButtonWidget(
+                        onPressed: () async {
+                          if (_isSubmitting)
+                            return; // Prevent multiple submissions
 
-                    // Construct the request body
-                    final body = json.encode({
-                      "topic": topic,
-                      "languages": languages,
-                      "level": level,
-                    });
+                          setState(() {
+                            _isSubmitting = true; // Show a loading indicator
+                          });
 
-                    // Set headers for the request
-                    final headers = {
-                      'Content-Type': 'application/json',
-                    };
+                          final topic = _model.textController1.text;
+                          final languages = _model.textController2.text
+                              .split(',')
+                              .map((language) => language.trim())
+                              .where((language) => language.isNotEmpty)
+                              .toList();
+                          final level = _selectedLevel;
 
-                    // Make the POST request
-                    try {
-                      final response = await http.post(
-                        Uri.parse(
-                            'https://questgenix.onrender.com/generate_questions'),
-                        headers: headers,
-                        body: body,
-                      );
+                          final body = json.encode({
+                            "topic": topic,
+                            "languages": languages,
+                            "level": level,
+                          });
 
-                      // Check if the request was successful
-                      if (response.statusCode == 200) {
-                        // Parse the response body
-                        final responseData = json.decode(response.body);
-                        print('Response data: $responseData');
-                      } else {
-                        // If the server did not return a 200 OK response,
-                        // throw an exception.
-                        throw Exception(
-                            'Failed to load data. Status code: ${response.statusCode}');
-                      }
-                    } catch (e) {
-                      print('Caught exception: $e');
-                    }
-                  },
-                  text: 'Submit',
-                  options: FFButtonOptions(
-                    width: double.infinity,
-                    height: 55.0,
-                    padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    iconPadding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: FlutterFlowTheme.of(context).primary,
-                    textStyle:
-                        FlutterFlowTheme.of(context).titleMedium.override(
-                              fontFamily: 'Manrope',
-                              color: Colors.white,
-                            ),
-                    elevation: 2.0,
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
+                          final headers = {
+                            'Content-Type': 'application/json',
+                          };
+
+                          try {
+                            final response = await http
+                                .post(
+                                  Uri.parse(
+                                      'https://questgenix.onrender.com/generate_questions/'),
+                                  headers: headers,
+                                  body: body,
+                                )
+                                .timeout(const Duration(
+                                    seconds:
+                                        30)); // Set a timeout of 30 seconds
+
+                            if (response.statusCode == 200) {
+                              final responseData = json.decode(response.body);
+                              final List<Question> questions =
+                                  (responseData['questions'] as List)
+                                      .map((questionText) =>
+                                          Question.fromString(questionText))
+                                      .toList();
+                              print('Questions list created: $questions');
+                              context.go('/qaPage',  extra: {'questions': questions});
+                              print("Send success");
+                            } else {
+                              print(
+                                  'Failed to load data. Status code: ${response.statusCode}');
+                            }
+                          } catch (e) {
+                            print('Caught exception: $e');
+                          } finally {
+                            setState(() {
+                              _isSubmitting =
+                                  false; // Hide the loading indicator
+                            });
+                          }
+                        },
+                        text: 'Submit',
+                        options: FFButtonOptions(
+                          width: double.infinity,
+                          height: 55.0,
+                          padding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 0.0, 0.0, 0.0),
+                          iconPadding: EdgeInsetsDirectional.fromSTEB(
+                              0.0, 0.0, 0.0, 0.0),
+                          color: FlutterFlowTheme.of(context).primary,
+                          textStyle:
+                              FlutterFlowTheme.of(context).titleMedium.override(
+                                    fontFamily: 'Manrope',
+                                    color: Colors.white,
+                                  ),
+                          elevation: 2.0,
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
               ),
             ],
           ),

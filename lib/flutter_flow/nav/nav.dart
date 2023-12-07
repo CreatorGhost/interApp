@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
+import '/question.dart';
 
 import '/index.dart';
 import '/main.dart';
@@ -61,7 +62,18 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
         FFRoute(
           name: 'qaPage',
           path: '/qaPage',
-          builder: (context, params) => QaPageWidget(),
+          builder: (context, params) {
+            final extra = params.state.extra as Map<String, dynamic>?;
+            final questions = extra?['questions'] as List<Question>?;
+            print(questions);
+
+    if (questions != null) {
+          return QaPageWidget(questions: questions);
+        } else {
+          // Handle the case where questions are null, perhaps by showing an error message or a default state.
+          return QaPageWidget(questions: []);
+        }
+              },
         )
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
     );

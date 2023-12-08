@@ -53,21 +53,22 @@ class _UserPrefrenceWidgetState extends State<UserPrefrenceWidget> {
   }
 
   @override
-  void dispose() {
-    // Dispose of text controllers and focus nodes
-    _model.textController1?.dispose();
-    _model.textFieldFocusNode1?.dispose();
-    _model.textController2?.dispose();
-    _model.textFieldFocusNode2?.dispose();
-    _model.textController3?.dispose();
-    _model.textFieldFocusNode3?.dispose();
+void dispose() {
+  // Dispose of text controllers and focus nodes
+  _model.textController1?.dispose();
+  _model.textFieldFocusNode1?.dispose();
+  _model.textController2?.dispose();
+  _model.textFieldFocusNode2?.dispose();
+  _model.textController3?.dispose();
+  _model.textFieldFocusNode3?.dispose();
+  _model.unfocusNode.dispose(); // Ensure this is also being disposed of
 
-    // Dispose of any other resources or listeners the model might hold
-    _model.dispose();
+  // Dispose of any other resources or listeners the model might hold
+  _model.dispose();
 
-    // Always call super.dispose() at the end of the dispose method
-    super.dispose();
-  }
+  // Always call super.dispose() at the end of the dispose method
+  super.dispose();
+}
 
   @override
   Widget build(BuildContext context) {

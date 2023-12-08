@@ -46,8 +46,10 @@ class _QaPageWidgetState extends State<QaPageWidget> {
 
   @override
   void dispose() {
-    // Dispose of the text controller and focus node
+    // Dispose of the text controller
     _model.textController?.dispose();
+
+    // Dispose of the focus node
     _model.textFieldFocusNode?.dispose();
 
     // Stop the speech recognition if it's currently active
@@ -56,45 +58,59 @@ class _QaPageWidgetState extends State<QaPageWidget> {
     super.dispose();
   }
 
-  double _confidence = 1.0;
-void startListening() async {
-  bool available = await _speech.initialize(
-    onStatus: (status) => print('onStatus: $status'),
-    onError: (errorNotification) {
-      print('onError: $errorNotification');
-      if (errorNotification.errorMsg == 'error_no_match') {
-        // Handle the no match error, possibly by restarting the listener or informing the user
-        print('No speech input recognized. Try speaking again.');
-        // Optionally, restart listening here or provide a button for the user to try again
-      }
-    },
-  );
-  if (available) {
-    setState(() {
-      _isListening = true;
-      _confidence = 1.0; // Reset confidence to the maximum value
-    });
-    _speech.listen(
-      onResult: (result) {
-        print('onResult: ${result.recognizedWords}'); // Debug print
-        if (result.recognizedWords.isNotEmpty) {
-          setState(() {
-            _model.textController?.text = result.recognizedWords;
-            // If you want to use the confidence level
-            if (result.hasConfidenceRating && result.confidence > 0) {
-              _confidence = result.confidence;
-            }
-          });
-          print('TextController text: ${_model.textController?.text}'); // Debug print
-        }
-      },
-      listenFor: Duration(seconds: 30), // Listen for speech for a longer duration
-    );
-  } else {
-    setState(() => _isListening = false);
-    _speech.stop();
+Future<void> someAsyncOperation() async {
+  // Perform some asynchronous work...
+  await Future.delayed(Duration(seconds: 1));
+
+  // Check if the State object is still mounted before trying to access the FocusNode
+  if (mounted) {
+    // It's safe to access the FocusNode here
+    _model.textFieldFocusNode?.requestFocus();
   }
 }
+
+  double _confidence = 1.0;
+  void startListening() async {
+    bool available = await _speech.initialize(
+      onStatus: (status) => print('onStatus: $status'),
+      onError: (errorNotification) {
+        print('onError: $errorNotification');
+        if (errorNotification.errorMsg == 'error_no_match') {
+          // Handle the no match error, possibly by restarting the listener or informing the user
+          print('No speech input recognized. Try speaking again.');
+          // Optionally, restart listening here or provide a button for the user to try again
+        }
+      },
+    );
+    if (available) {
+      setState(() {
+        _isListening = true;
+        _confidence = 1.0; // Reset confidence to the maximum value
+      });
+      _speech.listen(
+        onResult: (result) {
+          print('onResult: ${result.recognizedWords}'); // Debug print
+          if (result.recognizedWords.isNotEmpty) {
+            setState(() {
+              _model.textController?.text = result.recognizedWords;
+              // If you want to use the confidence level
+              if (result.hasConfidenceRating && result.confidence > 0) {
+                _confidence = result.confidence;
+              }
+            });
+            print(
+                'TextController text: ${_model.textController?.text}'); // Debug print
+          }
+        },
+        listenFor:
+            Duration(seconds: 30), // Listen for speech for a longer duration
+      );
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
+  }
+
   void stopListening() async {
     setState(() => _isListening = false);
     await _speech.stop();
@@ -164,7 +180,7 @@ void startListening() async {
     if (isEvaluationComplete) {
       return Scaffold(
         key: scaffoldKey,
-        backgroundColor: Color(0xFF7F8385),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Use theme-aware background color
         body: SafeArea(
           top: true,
           child: Center(

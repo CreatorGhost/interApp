@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+
 class QaPageWidget extends StatefulWidget {
   final List<Question> questions;
 
@@ -46,15 +47,9 @@ class _QaPageWidgetState extends State<QaPageWidget> {
 
   @override
   void dispose() {
-    // Dispose of the text controller
     _model.textController?.dispose();
-
-    // Dispose of the focus node
     _model.textFieldFocusNode?.dispose();
-
-    // Stop the speech recognition if it's currently active
     _speech.cancel();
-
     super.dispose();
   }
 
@@ -173,44 +168,13 @@ Future<void> someAsyncOperation() async {
       }
     });
   }
-
-  @override
+@override
   Widget build(BuildContext context) {
-    // Check if the evaluation is complete and display the score if it is
-    if (isEvaluationComplete) {
-      return Scaffold(
-        key: scaffoldKey,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Use theme-aware background color
-        body: SafeArea(
-          top: true,
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Evaluation Complete!',
-                  style: FlutterFlowTheme.of(context).headlineMedium,
-                ),
-                SizedBox(height: 24),
-                Text(
-                  'Your Score: $score',
-                  style: FlutterFlowTheme.of(context).titleLarge,
-                ),
-                // Optionally display correct answers or provide a button to view them
-                // ...
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+    ThemeData theme = Theme.of(context);
 
-    // If the evaluation is not complete, display the current question
-    final currentQuestion = widget.questions[currentQuestionIndex];
     return Scaffold(
       key: scaffoldKey,
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor, // Use theme-aware background color
       body: SafeArea(
         top: true,
         child: Column(
@@ -221,24 +185,21 @@ Future<void> someAsyncOperation() async {
               padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
               child: Text(
                 'Question ${currentQuestionIndex + 1}/${widget.questions.length}',
-                style: FlutterFlowTheme.of(context).headlineMedium.override(
-                      fontFamily: 'Urbanist',
-                      color: FlutterFlowTheme.of(context).primaryText,
-                    ),
+                style: theme.textTheme.headline6, // Use theme-aware text style
               ),
             ),
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
               child: Text(
-                currentQuestion.text,
-                style: FlutterFlowTheme.of(context).bodyLarge.override(
-                      fontFamily: 'Manrope',
-                      color: FlutterFlowTheme.of(context).primaryText,
-                    ),
+                widget.questions[currentQuestionIndex].text,
+                style: theme.textTheme.bodyText2, // Use theme-aware text style
               ),
             ),
             IconButton(
-              icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+              icon: Icon(
+                _isListening ? Icons.mic : Icons.mic_none,
+                color: theme.iconTheme.color, // Use theme-aware icon color
+              ),
               onPressed: _isListening ? stopListening : startListening,
             ),
             Padding(
@@ -249,58 +210,46 @@ Future<void> someAsyncOperation() async {
                 obscureText: false,
                 decoration: InputDecoration(
                   hintText: 'Enter your answer here...',
-                  hintStyle: FlutterFlowTheme.of(context).bodyLarge,
+                  hintStyle: theme.textTheme.bodyLarge, // Use theme-aware text style
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: FlutterFlowTheme.of(context).primaryText,
+                      color: theme.primaryColor, // Use theme-aware border color
                       width: 2.0,
                     ),
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: Color(0x00000000),
+                      color: theme.colorScheme.secondary, // Use theme-aware border color
                       width: 2.0,
                     ),
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                 ),
-                style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      fontFamily: 'Manrope',
-                      letterSpacing: 1.0,
-                    ),
+                style: theme.textTheme.bodyMedium, // Use theme-aware text style
                 minLines: 1,
-                maxLines: 3, // Limit the max lines to reduce text area size
-                cursorHeight: 20.0, // Adjust cursor height
+                maxLines: 3,
+                cursorHeight: 20.0,
                 validator: _model.textControllerValidator.asValidator(context),
               ),
             ),
             Padding(
               padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-              child: FFButtonWidget(
+              child: ElevatedButton(
                 onPressed: () {
                   if (currentQuestionIndex < widget.questions.length - 1) {
-                    // Submit the current answer and move to the next question
                     submitAnswer();
                   } else {
-                    // No more questions, evaluate the answers
                     evaluateAnswers();
                   }
                 },
-                text: 'Submit',
-                options: FFButtonOptions(
-                  width: 150.0,
-                  height: 50.0,
-                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  iconPadding:
-                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                  color: FlutterFlowTheme.of(context).primary,
-                  textStyle: FlutterFlowTheme.of(context).titleMedium.override(
-                        fontFamily: 'Manrope',
-                        color: Colors.white,
-                      ),
-                  elevation: 0.0,
-                  borderRadius: BorderRadius.circular(10.0),
+                child: Text('Submit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primaryColor, // Use theme-aware button color
+                  foregroundColor: theme.colorScheme.onPrimary, // Use theme-aware text color
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
               ),
             ),
